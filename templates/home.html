@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/home.css') }}"
+    />
+    <title>SelfWallet - Private Edition</title>
+  </head>
+  <body class="privacy-off">
+    <header class="main-header">
+      <div class="logo-area">
+        <h1>SelfWallet ₿</h1>
+        <span class="version-tag">v1.0 - Private Edition</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" title="Modo Ghost" onclick="togglePrivacy()">
+          👁️
+        </button>
+        <button class="btn-toggle" onclick="toggleUnit()">SATS / BTC</button>
+        <a href="/backup-db" class="btn-outline">💾 Backup</a>
+        <a href="/nova_transacao" class="btn-add">+ Comprar</a>
+      </div>
+    </header>
+
+    <main class="container-dashboard">
+      <section id="bloco-carteiras">
+        {% for carteira in carteiras %}
+        <article
+          class="bloco-carteira"
+          onclick="mostrarDetalhes('{{ carteira.id }}')"
+        >
+          <div class="card-header">
+            <h2>{{ carteira.nome }}</h2>
+            <span class="tag-status">Ativa</span>
+          </div>
+          <div class="valor-container">
+            <span class="currency" id="unit-{{ loop.index }}">BTC</span>
+            <p
+              class="saldo"
+              id="saldo-{{ loop.index }}"
+              data-btc="{{ carteira.saldo_total }}"
+              data-sats="{{ (carteira.saldo_total * 100000000)|int }}"
+            >
+              {{ "%.8f"|format(carteira.saldo_total) }}
+            </p>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
+
+      <section class="conteudo-inferior">
+        <aside class="col-esquerda">
+          <div class="chart-box">
+            <canvas id="graficoAlocacao"></canvas>
+          </div>
+          <div class="total-consolidado">
+            <h3>Patrimônio Consolidado</h3>
+            <div class="consolidado-item">
+              <span>Saldo Total BRL</span>
+              <strong id="total-geral-brl">R$ 0,00</strong>
+            </div>
+            <div class="consolidado-item">
+              <span>Custo Médio Global</span>
+              <strong id="total-geral-medio">R$ 0,00</strong>
+            </div>
+          </div>
+        </aside>
+
+        <section id="painel-detalhes">
+          <div id="placeholder-msg">
+            <div class="empty-state">
+              <div class="btc-logo-placeholder">₿</div>
+              <p>Aguardando seleção...</p>
+            </div>
+          </div>
+
+          <div id="conteudo-detalhes" style="display: none">
+            <header class="detalhes-header">
+              <h2 id="detalhe-nome">---</h2>
+              <div class="header-left">
+                <a id="link-exportar" href="#" class="btn-excel"
+                  >📥 Exportar XLSX</a
+                >
+              </div>
+              <div class="badge-live">
+                PREÇO AGORA: R$ {{ "{:,.2f}".format(preco) }}
+              </div>
+            </header>
+
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <span>Investimento Base</span
+                ><strong id="detalhe-investido">R$ 0,00</strong>
+              </div>
+              <div class="metric-card">
+                <span>Preço Médio</span
+                ><strong id="detalhe-medio">R$ 0,00</strong>
+              </div>
+              <div class="metric-card">
+                <span>Valor de Saída</span
+                ><strong id="detalhe-fiat">R$ 0,00</strong>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Volume</th>
+                    <th>Custo</th>
+                    <th>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody id="detalhe-lista-transacoes"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/chart.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+  </body>
+</html>

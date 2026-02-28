@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registrar Transação - SelfWallet</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/transacao.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container-form">
+      <form action="/nova_transacao" method="POST" id="form-transacao">
+        <h2>Nova Compra ₿</h2>
+
+        <div class="form-group">
+          <label>Destino (Carteira):</label>
+          <select name="carteira_id" required>
+            <option value="" disabled selected>Selecione a carteira...</option>
+            {% for c in carteiras %}
+            <option value="{{ c.id }}">{{ c.nome }} ({{ c.tipo }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Quantidade (BTC):</label>
+          <input
+            type="number"
+            step="0.00000001"
+            name="quantidade"
+            id="quantidade"
+            required
+            placeholder="0.00000000"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Preço Pago (BRL por 1 BTC):</label>
+          <input
+            type="number"
+            step="0.01"
+            name="preco_unitario"
+            id="preco_unitario"
+            required
+            placeholder="Ex: 350000"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Data e Hora:</label>
+          <input
+            type="datetime-local"
+            name="data_compra"
+            id="data_compra"
+            required
+          />
+        </div>
+
+        <button type="submit">CONFIRMAR REGISTRO</button>
+        <a href="/" class="btn-voltar">← Cancelar e Voltar</a>
+      </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/transacao.js') }}"></script>
+  </body>
+</html>
