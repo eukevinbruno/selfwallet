@@ -30,9 +30,9 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
     carteiras_obrigatorias = [
-        {'nome': 'Receita Federal', 'tipo': 'Cold'},
-        {'nome': 'Negação Plausível', 'tipo': 'Hot'},
-        {'nome': 'Carteira Hold', 'tipo': 'Cold'}
+        {'nome': 'Carteira Declarada', 'tipo': 'Cold'},
+        {'nome': 'Fora do Radar', 'tipo': 'Cold'},
+        {'nome': 'Negação Plausível', 'tipo': 'Hot'}
     ]
     for c_info in carteiras_obrigatorias:
         if not Carteira.query.filter_by(nome=c_info['nome']).first():
