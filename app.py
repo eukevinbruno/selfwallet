@@ -164,14 +164,19 @@ def backup_db():
 
 def encontrar_porta_livre():
     """Busca uma porta disponível começando pela 5000."""
-    with socket.socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        # Tenta a 5000 primeiro, se falhar o SO escolhe qualquer uma livre (porta 0)
-        try:
-            s.bind(('127.0.0.1', 5000))
-            return 5000
-        except OSError:
-            s.bind(('127.0.0.1', 0))
-            return s.getsockname()[1]
+    import socket
+    # Criamos o socket do jeito certo
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        # Tenta a 5000 primeiro
+        s.bind(('127.0.0.1', 5000))
+        port = 5000
+    except OSError:
+        # Se estiver ocupada, deixa o Windows escolher qualquer uma livre
+        s.bind(('127.0.0.1', 0))
+        port = s.getsockname()[1]
+    s.close()
+    return port
 
 def iniciar_servidor(porta):
     # Debug=False e use_reloader=False são cruciais para o .exe não travar
@@ -193,7 +198,7 @@ if __name__ == '__main__':
         'SelfWallet - Private Edition', 
         url_local, 
         width=1200, 
-        height=800,
+        height=950,
         min_size=(1000, 700)
     )
     
