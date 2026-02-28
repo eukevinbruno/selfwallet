@@ -9,11 +9,17 @@ import requests
 import webview # <--- Adicione este import no topo do arquivo
 from threading import Thread
 import socket
+import sys
 
 app = Flask(__name__)
 
-# --- CONFIGURAÇÃO DE CAMINHOS (Compatível com PyInstaller) ---
-basedir = os.path.abspath(os.path.dirname(__file__))
+# --- LOGICA DE CAMINHO REAL (O FIM DA AMNÉSIA) ---
+if getattr(sys, 'frozen', False):
+    # Se rodando como .exe, pega a pasta onde o .exe está
+    basedir = os.path.dirname(sys.executable)
+else:
+    # Se rodando como script .py, pega a pasta do script
+    basedir = os.path.dirname(os.path.abspath(__file__))
 INSTANCE_PATH = os.path.join(basedir, 'instance')
 CONFIG_PATH = os.path.join(INSTANCE_PATH, 'config.json')
 DATABASE_URI = 'sqlite:///' + os.path.join(INSTANCE_PATH, 'carteira.db')
