@@ -6,6 +6,9 @@ import pandas as pd
 import io
 import json
 import requests
+import webview # <--- Adicione este import no topo do arquivo
+from threading import Thread
+import socket
 
 app = Flask(__name__)
 
@@ -159,5 +162,39 @@ def exportar_excel(id):
 def backup_db():
     return send_file(os.path.join(INSTANCE_PATH, 'carteira.db'), as_attachment=True)
 
+def encontrar_porta_livre():
+    """Busca uma porta disponível começando pela 5000."""
+    with socket.socket(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        # Tenta a 5000 primeiro, se falhar o SO escolhe qualquer uma livre (porta 0)
+        try:
+            s.bind(('127.0.0.1', 5000))
+            return 5000
+        except OSError:
+            s.bind(('127.0.0.1', 0))
+            return s.getsockname()[1]
+
+def iniciar_servidor(porta):
+    # Debug=False e use_reloader=False são cruciais para o .exe não travar
+    app.run(host='127.0.0.1', port=porta, debug=False, use_reloader=False)
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    # 1. Encontra a porta dinamicamente
+    porta_final = encontrar_porta_livre()
+    url_local = f'http://127.0.0.1:{porta_final}'
+
+    # 2. Inicia o Flask em segundo plano
+    t = Thread(target=iniciar_servidor, args=(porta_final,))
+    t.daemon = True
+    t.start()
+
+    # 3. Abre a janela do App apontando para a porta que foi escolhida
+    # Substitua 'logo.ico' pelo nome do seu arquivo de ícone
+    webview.create_window(
+        'SelfWallet - Private Edition', 
+        url_local, 
+        width=1200, 
+        height=800,
+        min_size=(1000, 700)
+    )
+    
+    webview.start()
