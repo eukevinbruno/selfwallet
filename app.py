@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file
+from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file, flash
 from models import db, Carteira, Transacao
 from datetime import datetime
 import os
@@ -10,8 +10,12 @@ import webview # <--- Adicione este import no topo do arquivo
 from threading import Thread
 import socket
 import sys
+import hashlib
+import uuid
+import os
 
 app = Flask(__name__)
+app.secret_key = "LOIRINHA_DO_CHAN"
 
 # --- LOGICA DE CAMINHO REAL (O FIM DA AMNÉSIA) ---
 if getattr(sys, 'frozen', False):
@@ -71,7 +75,58 @@ def pegar_cotacao():
         config = carregar_config()
         return config.get('last_price', 0.0)
 
+def obter_hwid():
+    # Usar o node do UUID é o jeito mais estável
+    node = uuid.getnode()
+    # Importante: Garantir que o HWID seja gerado EXATAMENTE assim
+    return hashlib.sha256(str(node).encode()).hexdigest()[:12].upper()
+
+def licenca_valida():
+    path_licenca = os.path.join(INSTANCE_PATH, "ativacao.key")
+    if not os.path.exists(path_licenca): return False
+    
+    with open(path_licenca, "r") as f:
+        chave_salva = f.read().strip()
+        
+    hwid_atual = obter_hwid()
+    # O SEGREDO_MESTRE tem que ser IGUAL nos dois scripts
+    SEGREDO_MESTRE = "LOIRINHA_SECRET_KEY_2026_X" 
+    
+    bruto = (hwid_atual + SEGREDO_MESTRE).encode()
+    hash_completo = hashlib.sha256(bruto).hexdigest().upper()
+    chave_correta = f"{hash_completo[:4]}-{hash_completo[4:8]}-{hash_completo[8:12]}"
+    
+    return chave_salva == chave_correta
 # --- ROTAS ---
+# --- ROTAS DE SEGURANÇA ---
+
+@app.route('/tela_bloqueio')
+def tela_bloqueio():
+    # Se o cara já ativou e tentar entrar aqui, manda pra home
+    if licenca_valida():
+        return redirect(url_for('home'))
+    return render_template("bloqueio.html", hwid=obter_hwid())
+
+@app.route("/ativar", methods=["POST"])
+def ativar_software():
+    chave_digitada = request.form.get("chave").strip().upper()
+    hwid_atual = obter_hwid()
+    
+    # Lógica de validação (Mantenha o mesmo SEGREDO_MESTRE do licenca_valida)
+    SEGREDO_MESTRE = "LOIRINHA_SECRET_KEY_2026_X"
+    bruto = (hwid_atual + SEGREDO_MESTRE).encode()
+    hash_correto = hashlib.sha256(bruto).hexdigest().upper()
+    chave_correta = f"{hash_correto[:4]}-{hash_correto[4:8]}-{hash_correto[8:12]}"
+
+    if chave_digitada == chave_correta:
+        path_licenca = os.path.join(INSTANCE_PATH, "ativacao.key")
+        with open(path_licenca, "w") as f:
+            f.write(chave_correta)
+        return redirect(url_for('home'))
+    else:
+        # Importante: Para usar o flash(), você precisa definir uma app.secret_key
+        # Adicione app.secret_key = "uma_string_qualquer" no topo do arquivo
+        return "Chave Inválida! <a href='/tela_bloqueio'>Tentar novamente</a>"
 @app.route('/')
 def home():
     preco_atual = pegar_cotacao()
@@ -167,6 +222,14 @@ def exportar_excel(id):
 @app.route('/backup-db')
 def backup_db():
     return send_file(os.path.join(INSTANCE_PATH, 'carteira.db'), as_attachment=True)
+
+@app.before_request
+def verificar_acesso():
+    # Deixa ele acessar a tela de bloqueio, o POST de ativar e os arquivos estáticos
+    rotas_livres = ['tela_bloqueio', 'ativar_software', 'static']
+    
+    if request.endpoint not in rotas_livres and not licenca_valida():
+        return render_template("bloqueio.html", hwid=obter_hwid())
 
 def encontrar_porta_livre():
     """Busca uma porta disponível começando pela 5000."""

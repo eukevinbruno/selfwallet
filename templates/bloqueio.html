@@ -1,0 +1,58 @@
+<div style="text-align: center; padding: 50px; font-family: sans-serif">
+  <img
+    src="/static/foto_loirinha.jpg"
+    style="width: 200px; border-radius: 50%"
+  />
+  <h2>Software Bloqueado 🔒</h2>
+  <p>
+    Seu ID de Hardware:
+    <strong
+      id="hwid-display"
+      style="cursor: pointer; color: #ffcc00; text-decoration: underline"
+      onclick="copyToClipboard('{{ hwid }}')"
+      title="Clique para copiar"
+    >
+      {{ hwid }}
+    </strong>
+  </p>
+
+  <form action="/ativar" method="POST">
+    <input
+      type="text"
+      name="chave"
+      placeholder="Digite sua Chave de Ativação"
+      required
+      style="padding: 10px; width: 300px; text-align: center"
+    /><br /><br />
+    <button
+      type="submit"
+      style="
+        background: gold;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+      "
+    >
+      ATIVAR LICENÇA VITALÍCIA
+    </button>
+  </form>
+
+  <p style="margin-top: 20px">
+    Ainda não tem a chave? <br />
+    <a href="https://t.me/Otaldokbrunot" target="_blank"
+      >Chame no Telegram para liberar agora (R$ 47,00)</a
+    >
+  </p>
+</div>
+<script>
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(
+      function () {
+        alert("ID copiado para a área de transferência! ✨");
+      },
+      function (err) {
+        console.error("Erro ao copiar: ", err);
+      },
+    );
+  }
+</script>
